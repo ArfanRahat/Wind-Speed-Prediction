@@ -58,7 +58,7 @@ def load_model():
     try:
         # Feature info for scaler initialization
         feature_info = {
-            'ALLSKY_SFC_SW_DWN': {'min': 0.0, 'max': 35.0},
+            'SFC': {'min': 0.0, 'max': 35.0},
             'T2M': {'min': -10.0, 'max': 45.0},
             'T2MWET': {'min': -10.0, 'max': 35.0},
             'T2M_MIN': {'min': -15.0, 'max': 40.0},
@@ -123,7 +123,7 @@ def load_model():
 class WindSpeedPredictor:
     def __init__(self):
         self.feature_info = {
-            'ALLSKY_SFC_SW_DWN': {'min': 0.0, 'max': 35.0, 'unit': 'kW-hr/m²', 'default': 15.0, 'name': 'All Sky Surface Shortwave Downward Irradiance'},
+            'SFC': {'min': 0.0, 'max': 35.0, 'unit': 'kW-hr/m²', 'default': 15.0, 'name': 'All Sky Surface Shortwave Downward Irradiance'},
             'T2M': {'min': -10.0, 'max': 45.0, 'unit': '°C', 'default': 25.0, 'name': 'Temperature'},
             'T2MWET': {'min': -10.0, 'max': 35.0, 'unit': '°C', 'default': 20.0, 'name': 'Wet Bulb Temperature'},
             'T2M_MIN': {'min': -15.0, 'max': 40.0, 'unit': '°C', 'default': 18.0, 'name': 'Minimum Temperature'},
@@ -156,7 +156,11 @@ class WindSpeedPredictor:
             # Make prediction
             prediction = self.model.predict(input_scaled)[0]
             
-            return prediction, None
+            # Ensure prediction is a scalar
+            if hasattr(prediction, 'item'):
+                prediction = prediction.item()
+            
+            return float(prediction), None
             
         except Exception as e:
             return None, str(e)
@@ -261,7 +265,7 @@ class WindSpeedPredictor:
             features = list(self.feature_info.keys())
             
             # First 5 parameters (Solar and Temperature)
-            for feature in features[:5]:
+            for i, feature in enumerate(features[:5]):
                 info = self.feature_info[feature]
                 current_value = st.session_state.input_values.get(feature, info['default'])
                 
@@ -271,7 +275,7 @@ class WindSpeedPredictor:
                     max_value=float(info['max']),
                     value=float(current_value),
                     step=0.1 if feature == 'PRECTOTCORR' else 1.0,
-                    key=f"input_{feature}",
+                    key=f"input_{feature}_{i}",  # Unique key to prevent conflicts
                     help=f"Range: {info['min']} - {info['max']} {info['unit']}"
                 )
             
@@ -282,7 +286,7 @@ class WindSpeedPredictor:
             st.subheader("🌧️ Weather Parameters")
             
             # Last 4 parameters (Weather)
-            for feature in features[5:]:
+            for i, feature in enumerate(features[5:], start=5):
                 info = self.feature_info[feature]
                 current_value = st.session_state.input_values.get(feature, info['default'])
                 
@@ -292,7 +296,7 @@ class WindSpeedPredictor:
                     max_value=float(info['max']),
                     value=float(current_value),
                     step=0.1 if feature == 'PS' else 1.0,
-                    key=f"input_{feature}",
+                    key=f"input_{feature}_{i}",  # Unique key to prevent conflicts
                     help=f"Range: {info['min']} - {info['max']} {info['unit']}"
                 )
             
