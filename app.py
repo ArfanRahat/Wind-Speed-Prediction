@@ -71,10 +71,14 @@ def load_model():
         
         # Try to load from different possible locations
         possible_paths = [
+            'XGBoost.pkl',  # Match your GitHub file name exactly
             'xgboost_model.pkl',
             'model/xgboost_model.pkl',
             './xgboost_model.pkl',
-            'wind_speed_model.pkl'
+            'wind_speed_model.pkl',
+            'XGboost.pkl',
+            'xgboost.pkl',
+            'XGBOOST.pkl'
         ]
         
         model_path = None
@@ -84,9 +88,23 @@ def load_model():
                 break
         
         if model_path is None:
-            raise FileNotFoundError("Model file not found. Please upload your XGBoost model (.pkl file)")
+            # Debug: List all files in current directory
+            current_files = os.listdir('.')
+            pkl_files = [f for f in current_files if f.endswith('.pkl')]
+            error_msg = f"Model file not found. Please upload your XGBoost model (.pkl file)\n"
+            error_msg += f"Current directory files: {current_files}\n"
+            error_msg += f"Found .pkl files: {pkl_files}\n"
+            error_msg += f"Searched for: {possible_paths}"
+            raise FileNotFoundError(error_msg)
         
-        model = joblib.load(model_path)
+        try:
+            model = joblib.load(model_path)
+            print(f"Successfully loaded model from: {model_path}")
+            print(f"Model type: {type(model)}")
+        except Exception as e:
+            error_msg = f"Error loading model from {model_path}: {str(e)}"
+            print(error_msg)
+            raise Exception(error_msg)
         
         # Initialize scaler with approximate training data ranges
         scaler = MinMaxScaler()
@@ -222,7 +240,12 @@ class WindSpeedPredictor:
         
         # Model status
         if not self.model_loaded:
-            st.error("❌ Model not loaded. Please ensure your XGBoost model (.pkl file) is in the app directory.")
+            st.error("❌ Model not loaded. Please check the error details below:")
+            try:
+                # Try to load again to get the specific error
+                load_model()
+            except Exception as e:
+                st.code(str(e))
             st.stop()
         else:
             st.success("✅ XGBoost model loaded successfully!")
