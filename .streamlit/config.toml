@@ -1,0 +1,20 @@
+[server]
+# Disable file watcher to prevent inotify issues
+fileWatcherType = "none"
+runOnSave = false
+
+# Optional: Set other server configurations
+port = 8501
+enableCORS = false
+enableXsrfProtection = true
+
+[browser]
+# Disable automatic browser opening
+gatherUsageStats = false
+
+[theme]
+# Optional: Set theme colors
+primaryColor = "#FF6B6B"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
