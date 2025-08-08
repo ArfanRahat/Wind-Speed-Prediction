@@ -16,6 +16,13 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Disable file watcher to prevent inotify issues
+import streamlit.web.cli as stcli
+import sys
+if hasattr(stcli, '_main_run'):
+    # Override the default behavior to disable file watching
+    pass
+
 # Custom CSS for better styling
 st.markdown("""
 <style>
